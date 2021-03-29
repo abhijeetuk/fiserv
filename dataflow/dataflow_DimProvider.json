@@ -1,0 +1,65 @@
+{
+	"name": "dataflow_DimProvider",
+	"properties": {
+		"type": "MappingDataFlow",
+		"typeProperties": {
+			"sources": [
+				{
+					"dataset": {
+						"referenceName": "DS_OUT_AzureSQLTable_c",
+						"type": "DatasetReference"
+					},
+					"name": "StgClaim"
+				},
+				{
+					"dataset": {
+						"referenceName": "Ds_In_TableDimProvider",
+						"type": "DatasetReference"
+					},
+					"name": "srcDimProvider"
+				}
+			],
+			"sinks": [
+				{
+					"dataset": {
+						"referenceName": "Ds_In_TableDimProvider",
+						"type": "DatasetReference"
+					},
+					"name": "InsertRecs"
+				},
+				{
+					"dataset": {
+						"referenceName": "Ds_In_TableDimProvider",
+						"type": "DatasetReference"
+					},
+					"name": "UpdateRecs"
+				},
+				{
+					"dataset": {
+						"referenceName": "ds_out_DimProviderErrorLog",
+						"type": "DatasetReference"
+					},
+					"name": "InvalidRecsForDimProvider"
+				}
+			],
+			"transformations": [
+				{
+					"name": "Join"
+				},
+				{
+					"name": "HashBuild"
+				},
+				{
+					"name": "ConditionalSplit"
+				},
+				{
+					"name": "UpdateEssentials"
+				},
+				{
+					"name": "ConditionalSplitForErroneousRecs"
+				}
+			],
+			"script": "source(output(\n\t\tStgClaim_providerXref as string,\n\t\tproviderName as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tisolationLevel: 'READ_UNCOMMITTED',\n\tquery: 'SELECT       \\n       ltrim(rtrim([providerXref])) as StgClaim_providerXref\\n      ,[providerName]\\nFROM dbo.[Stg_Claim]',\n\tformat: 'query') ~> StgClaim\nsource(output(\n\t\tProviderID as integer,\n\t\tProviderXRef as string,\n\t\tProviderFullName as string,\n\t\tHashcolumn as binary\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tisolationLevel: 'READ_UNCOMMITTED',\n\tquery: 'SELECT\\n       [ProviderID]\\n      ,ltrim(rtrim([ProviderXRef])) As ProviderXRef\\n      ,[ProviderFullName]\\n      ,[Hashcolumn]\\n  FROM [dbo].[DimProvider]',\n\tformat: 'query') ~> srcDimProvider\nHashBuild, srcDimProvider join(StgClaim_providerXref == ProviderXRef,\n\tjoinType:'left',\n\tbroadcast: 'auto')~> Join\nConditionalSplitForErroneousRecs@ValidRecs derive(Hash = toBinary(md5(StgClaim_providerXref+providerName))) ~> HashBuild\nJoin split(isNull(ProviderXRef),\n\tisNull(ProviderXRef) && notEquals(Hashcolumn, Hash),\n\tdisjoint: false) ~> ConditionalSplit@(New, Updates)\nConditionalSplit@Updates alterRow(updateIf(true())) ~> UpdateEssentials\nStgClaim split(isNull(toString(StgClaim_providerXref)) || isNull(toString(providerName)),\n\tdisjoint: false) ~> ConditionalSplitForErroneousRecs@(InvalidRecs, ValidRecs)\nConditionalSplit@New sink(input(\n\t\tProviderID as integer,\n\t\tProviderXRef as string,\n\t\tProviderFullName as string,\n\t\tHashcolumn as binary,\n\t\tLastModifiedDate as timestamp\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tdeletable:false,\n\tinsertable:true,\n\tupdateable:false,\n\tupsertable:false,\n\tformat: 'table',\n\tmapColumn(\n\t\tProviderXRef,\n\t\tProviderFullName,\n\t\tHashcolumn = Hash\n\t),\n\tskipDuplicateMapInputs: true,\n\tskipDuplicateMapOutputs: true,\n\terrorHandlingOption: 'allErrors',\n\ttransactionCommit: 'single',\n\treportSuccessOnError: false) ~> InsertRecs\nUpdateEssentials sink(input(\n\t\tProviderID as integer,\n\t\tProviderXRef as string,\n\t\tProviderFullName as string,\n\t\tHashcolumn as binary,\n\t\tLastModifiedDate as timestamp\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tdeletable:false,\n\tinsertable:false,\n\tupdateable:true,\n\tupsertable:false,\n\tkeys:['ProviderXRef'],\n\tformat: 'table',\n\tmapColumn(\n\t\tProviderXRef,\n\t\tProviderFullName\n\t),\n\tskipDuplicateMapInputs: true,\n\tskipDuplicateMapOutputs: true,\n\terrorHandlingOption: 'allErrors',\n\ttransactionCommit: 'single',\n\treportSuccessOnError: false) ~> UpdateRecs\nConditionalSplitForErroneousRecs@InvalidRecs sink(input(\n\t\tSrNo as integer,\n\t\tProviderXRef as string,\n\t\tProviderFullName as string,\n\t\tLastModifiedDate as timestamp\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tdeletable:false,\n\tinsertable:true,\n\tupdateable:false,\n\tupsertable:false,\n\tformat: 'table',\n\tmapColumn(\n\t\tProviderXRef = StgClaim_providerXref,\n\t\tProviderFullName = providerName\n\t),\n\tskipDuplicateMapInputs: true,\n\tskipDuplicateMapOutputs: true,\n\terrorHandlingOption: 'stopOnFirstError') ~> InvalidRecsForDimProvider"
+		}
+	}
+}

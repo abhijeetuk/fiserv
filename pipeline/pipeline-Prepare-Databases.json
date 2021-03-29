@@ -1,0 +1,30 @@
+{
+	"name": "pipeline-Prepare-Databases",
+	"properties": {
+		"activities": [
+			{
+				"name": "Prepare Databases",
+				"type": "SqlServerStoredProcedure",
+				"dependsOn": [],
+				"policy": {
+					"timeout": "7.00:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"storedProcedureName": "[dbo].[usp_StgDataPrep]"
+				},
+				"linkedServiceName": {
+					"referenceName": "ls_AzureSqlDatabase",
+					"type": "LinkedServiceReference"
+				}
+			}
+		],
+		"annotations": [],
+		"lastPublishTime": "2021-03-23T15:03:46Z"
+	},
+	"type": "Microsoft.DataFactory/factories/pipelines"
+}

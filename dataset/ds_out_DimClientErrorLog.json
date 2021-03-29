@@ -1,0 +1,49 @@
+{
+	"name": "ds_out_DimClientErrorLog",
+	"properties": {
+		"linkedServiceName": {
+			"referenceName": "ls_AzureSqlDatabase",
+			"type": "LinkedServiceReference"
+		},
+		"annotations": [],
+		"type": "AzureSqlTable",
+		"schema": [
+			{
+				"name": "SrNo",
+				"type": "int",
+				"precision": 10
+			},
+			{
+				"name": "ClientXRef",
+				"type": "nvarchar"
+			},
+			{
+				"name": "ClientFirstname",
+				"type": "nvarchar"
+			},
+			{
+				"name": "ClientMiddlename",
+				"type": "nvarchar"
+			},
+			{
+				"name": "ClientLastName",
+				"type": "nvarchar"
+			},
+			{
+				"name": "ClientFullName",
+				"type": "nvarchar"
+			},
+			{
+				"name": "LastModifiedDate",
+				"type": "datetime",
+				"precision": 23,
+				"scale": 3
+			}
+		],
+		"typeProperties": {
+			"schema": "dbo",
+			"table": "DimClient_ErrorLog"
+		}
+	},
+	"type": "Microsoft.DataFactory/factories/datasets"
+}

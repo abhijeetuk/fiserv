@@ -1,0 +1,35 @@
+{
+	"name": "dF_JSMapping",
+	"properties": {
+		"type": "MappingDataFlow",
+		"typeProperties": {
+			"sources": [
+				{
+					"dataset": {
+						"referenceName": "ds_input_JS_Mapping_Json",
+						"type": "DatasetReference"
+					},
+					"name": "sourceJSMappingFile"
+				}
+			],
+			"sinks": [
+				{
+					"dataset": {
+						"referenceName": "ds_in_AzureSqlTableDimJurisdictionState2",
+						"type": "DatasetReference"
+					},
+					"name": "sinkDimJurisdictionState"
+				}
+			],
+			"transformations": [
+				{
+					"name": "FlattenArrayElements"
+				},
+				{
+					"name": "ImlementSCDType1"
+				}
+			],
+			"script": "source(output(\n\t\tJurisdictionData as (JurisdictionRecs as (jurisdictionCode as string, stateCode as string)[])\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tignoreNoFilesFound: false,\n\tdocumentForm: 'singleDocument') ~> sourceJSMappingFile\nsourceJSMappingFile foldDown(unroll(JurisdictionData.JurisdictionRecs),\n\tmapColumn(\n\t\tjurisdictionCode = JurisdictionData.JurisdictionRecs.jurisdictionCode,\n\t\tstateCode = JurisdictionData.JurisdictionRecs.stateCode\n\t),\n\tskipDuplicateMapInputs: false,\n\tskipDuplicateMapOutputs: false) ~> FlattenArrayElements\nFlattenArrayElements alterRow(upsertIf(1==1)) ~> ImlementSCDType1\nImlementSCDType1 sink(input(\n\t\tJurisdictionID as integer,\n\t\tJurisdictionCode as string,\n\t\tStateCode as string,\n\t\tLastModifiedDate as timestamp\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tdeletable:false,\n\tinsertable:false,\n\tupdateable:false,\n\tupsertable:true,\n\tkeys:['JurisdictionCode'],\n\tformat: 'table',\n\tmapColumn(\n\t\tJurisdictionCode = jurisdictionCode,\n\t\tStateCode = stateCode\n\t),\n\tskipDuplicateMapInputs: true,\n\tskipDuplicateMapOutputs: true,\n\terrorHandlingOption: 'stopOnFirstError') ~> sinkDimJurisdictionState"
+		}
+	}
+}

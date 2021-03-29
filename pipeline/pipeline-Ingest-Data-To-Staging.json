@@ -1,0 +1,1595 @@
+{
+	"name": "pipeline-Ingest-Data-To-Staging",
+	"properties": {
+		"activities": [
+			{
+				"name": "Capture Metadata for CEx",
+				"type": "GetMetadata",
+				"dependsOn": [],
+				"policy": {
+					"timeout": "7.00:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"dataset": {
+						"referenceName": "dataset_API_Jsonpayload_EventBased",
+						"type": "DatasetReference",
+						"parameters": {
+							"ds_Par_SourceFileName": {
+								"value": "@pipeline().parameters.SourceFileName",
+								"type": "Expression"
+							},
+							"ds_Par_SourceFilePath": {
+								"value": "@pipeline().parameters.SourceFolderPath",
+								"type": "Expression"
+							}
+						}
+					},
+					"fieldList": [
+						"itemName"
+					],
+					"storeSettings": {
+						"type": "AzureBlobStorageReadSettings",
+						"recursive": true,
+						"enablePartitionDiscovery": false
+					},
+					"formatSettings": {
+						"type": "JsonReadSettings"
+					}
+				}
+			},
+			{
+				"name": "Capture Metadata for C",
+				"type": "GetMetadata",
+				"dependsOn": [],
+				"policy": {
+					"timeout": "7.00:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"dataset": {
+						"referenceName": "dataset_API_Jsonpayload_EventBased",
+						"type": "DatasetReference",
+						"parameters": {
+							"ds_Par_SourceFileName": {
+								"value": "@pipeline().parameters.SourceFileName",
+								"type": "Expression"
+							},
+							"ds_Par_SourceFilePath": {
+								"value": "@pipeline().parameters.SourceFolderPath",
+								"type": "Expression"
+							}
+						}
+					},
+					"fieldList": [
+						"itemName"
+					],
+					"storeSettings": {
+						"type": "AzureBlobStorageReadSettings",
+						"recursive": true,
+						"enablePartitionDiscovery": false
+					},
+					"formatSettings": {
+						"type": "JsonReadSettings"
+					}
+				}
+			},
+			{
+				"name": "Ingest data to staging table C",
+				"type": "Copy",
+				"dependsOn": [
+					{
+						"activity": "Assign filename to variable C",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"timeout": "7.00:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"source": {
+						"type": "JsonSource",
+						"storeSettings": {
+							"type": "AzureBlobStorageReadSettings",
+							"recursive": true,
+							"enablePartitionDiscovery": false
+						},
+						"formatSettings": {
+							"type": "JsonReadSettings"
+						}
+					},
+					"sink": {
+						"type": "AzureSqlSink"
+					},
+					"enableStaging": false,
+					"enableSkipIncompatibleRow": false,
+					"translator": {
+						"type": "TabularTranslator",
+						"mappings": [
+							{
+								"source": {
+									"path": "$['ClaimData']['ClaimRecs'][0]['jurisdictionCode']"
+								},
+								"sink": {
+									"name": "jurisdictionCode",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"path": "$['ClaimData']['ClaimRecs'][0]['claimID']"
+								},
+								"sink": {
+									"name": "claimID",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"path": "$['ClaimData']['ClaimRecs'][0]['claimGroupID']"
+								},
+								"sink": {
+									"name": "claimGroupID",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"path": "$['ClaimData']['ClaimRecs'][0]['rowNumber']"
+								},
+								"sink": {
+									"name": "rowNumber",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"path": "$['ClaimData']['ClaimRecs'][0]['lineNumber']"
+								},
+								"sink": {
+									"name": "lineNumber",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"path": "$['ClaimData']['ClaimRecs'][0]['claimXRef']"
+								},
+								"sink": {
+									"name": "claimXRef",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"path": "$['ClaimData']['ClaimRecs'][0]['serviceXRef']"
+								},
+								"sink": {
+									"name": "serviceXRef",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"path": "$['ClaimData']['ClaimRecs'][0]['authorizationXRef']"
+								},
+								"sink": {
+									"name": "authorizationXRef",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"path": "$['ClaimData']['ClaimRecs'][0]['claimStart']"
+								},
+								"sink": {
+									"name": "claimStart",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"path": "$['ClaimData']['ClaimRecs'][0]['claimEnd']"
+								},
+								"sink": {
+									"name": "claimEnd",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"path": "$['ClaimData']['ClaimRecs'][0]['status']"
+								},
+								"sink": {
+									"name": "status",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"path": "$['ClaimData']['ClaimRecs'][0]['bk_checkInPhone']"
+								},
+								"sink": {
+									"name": "bk_checkInPhone",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"path": "$['ClaimData']['ClaimRecs'][0]['bk_checkOutPhone']"
+								},
+								"sink": {
+									"name": "bk_checkOutPhone",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"path": "$['ClaimData']['ClaimRecs'][0]['creationTimestamp']"
+								},
+								"sink": {
+									"name": "creationTimestamp",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"path": "$['ClaimData']['ClaimRecs'][0]['completionTimestamp']"
+								},
+								"sink": {
+									"name": "completionTimestamp",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"path": "$['ClaimData']['ClaimRecs'][0]['touchTimestamp']"
+								},
+								"sink": {
+									"name": "touchTimestamp",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"path": "$['ClaimData']['ClaimRecs'][0]['filingSource']"
+								},
+								"sink": {
+									"name": "filingSource",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"path": "$['ClaimData']['ClaimRecs'][0]['providerXRef']"
+								},
+								"sink": {
+									"name": "providerXRef",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"path": "$['ClaimData']['ClaimRecs'][0]['providerName']"
+								},
+								"sink": {
+									"name": "providerName",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"path": "$['ClaimData']['ClaimRecs'][0]['workerXRef']"
+								},
+								"sink": {
+									"name": "workerXRef",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"path": "$['ClaimData']['ClaimRecs'][0]['workerFirstName']"
+								},
+								"sink": {
+									"name": "workerFirstName",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"path": "$['ClaimData']['ClaimRecs'][0]['workerMidName']"
+								},
+								"sink": {
+									"name": "workerMidName",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"path": "$['ClaimData']['ClaimRecs'][0]['workerLastName']"
+								},
+								"sink": {
+									"name": "workerLastName",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"path": "$['ClaimData']['ClaimRecs'][0]['bk_consumerXRef']"
+								},
+								"sink": {
+									"name": "bk_consumerXRef",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"path": "$['ClaimData']['ClaimRecs'][0]['bk_consumerFirstName']"
+								},
+								"sink": {
+									"name": "bk_consumerFirstName",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"path": "$['ClaimData']['ClaimRecs'][0]['bk_consumerMidName']"
+								},
+								"sink": {
+									"name": "bk_consumerMidName",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"path": "$['ClaimData']['ClaimRecs'][0]['bk_consumerLastName']"
+								},
+								"sink": {
+									"name": "bk_consumerLastName",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"path": "$['ClaimData']['ClaimRecs'][0]['caseManagerXRef']"
+								},
+								"sink": {
+									"name": "caseManagerXRef",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"path": "$['ClaimData']['ClaimRecs'][0]['caseManagerFirstName']"
+								},
+								"sink": {
+									"name": "caseManagerFirstName",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"path": "$['ClaimData']['ClaimRecs'][0]['caseManagerMidName']"
+								},
+								"sink": {
+									"name": "caseManagerMidName",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"path": "$['ClaimData']['ClaimRecs'][0]['caseManagerLastName']"
+								},
+								"sink": {
+									"name": "caseManagerLastName",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"path": "$['ClaimData']['ClaimRecs'][0]['representativeXRef']"
+								},
+								"sink": {
+									"name": "representativeXRef",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"path": "$['ClaimData']['ClaimRecs'][0]['representativeFirstName']"
+								},
+								"sink": {
+									"name": "representativeFirstName",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"path": "$['ClaimData']['ClaimRecs'][0]['representativeMidName']"
+								},
+								"sink": {
+									"name": "representativeMidName",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"path": "$['ClaimData']['ClaimRecs'][0]['representativeLastName']"
+								},
+								"sink": {
+									"name": "representativeLastName",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"path": "$['ClaimData']['ClaimRecs'][0]['emergency']"
+								},
+								"sink": {
+									"name": "emergency",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"path": "$['ClaimData']['ClaimRecs'][0]['multiClientDiscount']"
+								},
+								"sink": {
+									"name": "multiClientDiscount",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"path": "$['ClaimData']['ClaimRecs'][0]['authData']"
+								},
+								"sink": {
+									"name": "authData",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"path": "$['ClaimData']['ClaimRecs'][0]['eventID']"
+								},
+								"sink": {
+									"name": "eventID",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"path": "$['ClaimData']['ClaimRecs'][0]['billingConfirmed']"
+								},
+								"sink": {
+									"name": "billingConfirmed",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"path": "$['ClaimData']['ClaimRecs'][0]['checkInVoicePrintFailed']"
+								},
+								"sink": {
+									"name": "checkInvoicePrintFailed",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"path": "$['ClaimData']['ClaimRecs'][0]['checkOutVoicePrintFailed']"
+								},
+								"sink": {
+									"name": "checkOutVoicePrintFailed",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"path": "$['ClaimData']['ClaimRecs'][0]['userName']"
+								},
+								"sink": {
+									"name": "userName",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"path": "$['ClaimData']['ClaimRecs'][0]['lastUpdatedAuditTimeStamp']"
+								},
+								"sink": {
+									"name": "lastUpdatedAuditTimeStamp",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"path": "$['ClaimData']['ClaimRecs'][0]['checkInAuthorizationFlag']"
+								},
+								"sink": {
+									"name": "checkInAuthorizationFlag",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"path": "$['ClaimData']['ClaimRecs'][0]['checkInAuthorizationData']"
+								},
+								"sink": {
+									"name": "checkInAuthorizationData",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"path": "$['ClaimData']['ClaimRecs'][0]['checkOutAuthorizationFlag']"
+								},
+								"sink": {
+									"name": "checkOutAuthorizationFlag",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"path": "$['ClaimData']['ClaimRecs'][0]['checkOutAuthorizationData']"
+								},
+								"sink": {
+									"name": "checkOutAuthorizationData",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"path": "$['ClaimData']['ClaimRecs'][0]['exportTS']"
+								},
+								"sink": {
+									"name": "exportTS",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"path": "$['ClaimData']['ClaimRecs'][0]['actualUnits']"
+								},
+								"sink": {
+									"name": "actualUnits",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"path": "$['ClaimData']['ClaimRecs'][0]['authUnits']"
+								},
+								"sink": {
+									"name": "authUnits",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"path": "$['ClaimData']['ClaimRecs'][0]['unitsEntered']"
+								},
+								"sink": {
+									"name": "unitsEntered",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"path": "$['ClaimData']['ClaimRecs'][0]['authAdjstUnits']"
+								},
+								"sink": {
+									"name": "authAdjstUnits",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"path": "$['ClaimData']['ClaimRecs'][0]['paidUnits']"
+								},
+								"sink": {
+									"name": "paidUnits",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"path": "$['ClaimData']['ClaimRecs'][0]['rate']"
+								},
+								"sink": {
+									"name": "rate",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"path": "$['ClaimData']['ClaimRecs'][0]['actualAmount']"
+								},
+								"sink": {
+									"name": "actualAmount",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"path": "$['ClaimData']['ClaimRecs'][0]['authAmount']"
+								},
+								"sink": {
+									"name": "authAmount",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"path": "$['ClaimData']['ClaimRecs'][0]['billableAmount']"
+								},
+								"sink": {
+									"name": "billableAmount",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"path": "$['ClaimData']['ClaimRecs'][0]['paidAmount']"
+								},
+								"sink": {
+									"name": "paidAmount",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"path": "$['ClaimData']['ClaimRecs'][0]['mileage']"
+								},
+								"sink": {
+									"name": "mileage",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"path": "$['ClaimData']['ClaimRecs'][0]['travelTime']"
+								},
+								"sink": {
+									"name": "travelTime",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"path": "$['ClaimData']['ClaimRecs'][0]['checkInDataXML']"
+								},
+								"sink": {
+									"name": "checkInDataXML",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"path": "$['ClaimData']['ClaimRecs'][0]['checkOutDataXML']"
+								},
+								"sink": {
+									"name": "checkOutDataXML",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"path": "$['ClaimData']['ClaimRecs'][0]['bk_medicaidID']"
+								},
+								"sink": {
+									"name": "bk_medicaidID",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"path": "$['ClaimData']['ClaimRecs'][0]['payerXRef']"
+								},
+								"sink": {
+									"name": "payerXRef",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"path": "$['ClaimData']['ClaimRecs'][0]['claimSubmitterID']"
+								},
+								"sink": {
+									"name": "claimSubmitterID",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"path": "$['ClaimData']['ClaimRecs'][0]['serviceLineID']"
+								},
+								"sink": {
+									"name": "serviceLineID",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"path": "$['ClaimData']['ClaimRecs'][0]['bk_checkInLocationLatitude']"
+								},
+								"sink": {
+									"name": "bk_checkInLocationLatitude",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"path": "$['ClaimData']['ClaimRecs'][0]['bk_checkOutLocationLatitude']"
+								},
+								"sink": {
+									"name": "bk_checkOutLocationLatitude",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"path": "$['ClaimData']['ClaimRecs'][0]['bk_checkInLocationLongitude']"
+								},
+								"sink": {
+									"name": "bk_checkInLocationLongitude",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"path": "$['ClaimData']['ClaimRecs'][0]['bk_checkOutLocationLongitude']"
+								},
+								"sink": {
+									"name": "bk_checkOutLocationLongitude",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"path": "$['ClaimData']['ClaimRecs'][0]['checkInAddressType']"
+								},
+								"sink": {
+									"name": "checkInAddressType",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"path": "$['ClaimData']['ClaimRecs'][0]['checkOutAddressType']"
+								},
+								"sink": {
+									"name": "checkOutAddressType",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"path": "$['ClaimData']['ClaimRecs'][0]['checkInAddressDesc']"
+								},
+								"sink": {
+									"name": "checkInAddressDesc",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"path": "$['ClaimData']['ClaimRecs'][0]['checkOutAddressDesc']"
+								},
+								"sink": {
+									"name": "checkOutAddressDesc",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"path": "$['ClaimData']['ClaimRecs'][0]['checkInMobileCardXRef']"
+								},
+								"sink": {
+									"name": "checkInMobileCardXRef",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"path": "$['ClaimData']['ClaimRecs'][0]['checkOutMobileCardXRef']"
+								},
+								"sink": {
+									"name": "checkOutMobileCardXRef",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"path": "$['ClaimData']['ClaimRecs'][0]['dtTBatchexportTS']"
+								},
+								"sink": {
+									"name": "dtBatchExportTs",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"path": "$['ClaimData']['ClaimRecs'][0]['contactDuration']"
+								},
+								"sink": {
+									"name": "contactDuration",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"path": "$['ClaimData']['ClaimRecs'][0]['overlappingClaims']"
+								},
+								"sink": {
+									"name": "overlappingClaims",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"path": "$['ClaimData']['ClaimRecs'][0]['claimReviewDate']"
+								},
+								"sink": {
+									"name": "claimReviewDate",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"path": "$['ClaimData']['ClaimRecs'][0]['claimEditedToIncreaseUnits']"
+								},
+								"sink": {
+									"name": "claimEditedToIncreaseUnits",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"path": "$['ClaimData']['ClaimRecs'][0]['bk_consumerFullName']"
+								},
+								"sink": {
+									"name": "bk_consumerFullName",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"path": "$['ClaimData']['ClaimRecs'][0]['sk_CheckInLocationLatitude']"
+								},
+								"sink": {
+									"name": "sk_checkInLocationLatitude",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"path": "$['ClaimData']['ClaimRecs'][0]['sk_CheckInLocationLongitude']"
+								},
+								"sink": {
+									"name": "sk_checkInLocationLongitude",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"path": "$['ClaimData']['ClaimRecs'][0]['sk_CheckInPhone']"
+								},
+								"sink": {
+									"name": "sk_checkInPhone",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"path": "$['ClaimData']['ClaimRecs'][0]['sk_CheckOutLocationLatitude']"
+								},
+								"sink": {
+									"name": "sk_checkOutLocationLatitude",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"path": "$['ClaimData']['ClaimRecs'][0]['sk_CheckOutLocationLongitude']"
+								},
+								"sink": {
+									"name": "sk_checkOutLocationLongitude",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"path": "$['ClaimData']['ClaimRecs'][0]['sk_CheckOutPhone']"
+								},
+								"sink": {
+									"name": "sk_checkOutPhone",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"path": "$['ClaimData']['ClaimRecs'][0]['sk_ConsumerFullName']"
+								},
+								"sink": {
+									"name": "sk_consumerFullName",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"path": "$['ClaimData']['ClaimRecs'][0]['sk_ConsumerFirstName']"
+								},
+								"sink": {
+									"name": "sk_consumerFirstName",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"path": "$['ClaimData']['ClaimRecs'][0]['sk_ConsumerLastName']"
+								},
+								"sink": {
+									"name": "sk_consumerLastName",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"path": "$['ClaimData']['ClaimRecs'][0]['sk_consumerMidName']"
+								},
+								"sink": {
+									"name": "sk_consumerMidName",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"path": "$['ClaimData']['ClaimRecs'][0]['sk_ConsumerXRef']"
+								},
+								"sink": {
+									"name": "sk_ConsumerXRef",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"path": "$['ClaimData']['ClaimRecs'][0]['sk_MedicaidID']"
+								},
+								"sink": {
+									"name": "sk_MedicaidID",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"path": "$['ClaimData']['ClaimRecs'][0]['checkInDataXMLKeyNum']"
+								},
+								"sink": {
+									"name": "checkInDataXMLKeyNum",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"path": "$['ClaimData']['ClaimRecs'][0]['checkOutDataXMLKeyNum']"
+								},
+								"sink": {
+									"name": "checkOutDataXMLKeyNum",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"path": "$['ClaimData']['ClaimRecs'][0]['fmsaReviewDate']"
+								},
+								"sink": {
+									"name": "fmsaReviewDate",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"path": "$['ClaimData']['ClaimRecs'][0]['backupWorker']"
+								},
+								"sink": {
+									"name": "backupWorker",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"path": "$['ClaimData']['ClaimRecs'][0]['isMissingClockInorOut']"
+								},
+								"sink": {
+									"name": "isMissingClockInorOut",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"path": "$['ClaimData']['ClaimRecs'][0]['clientAttestation']"
+								},
+								"sink": {
+									"name": "clientAttestation",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"path": "$['ClaimData']['ClaimRecs'][0]['visitModification']"
+								},
+								"sink": {
+									"name": "visitModification",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"path": "$['ClaimData']['ClaimRecs'][0]['consumerSignatureAvailable']"
+								},
+								"sink": {
+									"name": "consumerSignatureAvailable",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"path": "$['ClaimData']['ClaimRecs'][0]['checkDate']"
+								},
+								"sink": {
+									"name": "checkDate",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"path": "$['ClaimData']['ClaimRecs'][0]['originalSystemClaimfilingSource']"
+								},
+								"sink": {
+									"name": "originalSystemClaimfilingSource",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"path": "$['ClaimData']['ClaimRecs'][0]['providerMedicaid']"
+								},
+								"sink": {
+									"name": "providerMedicaid",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"path": "$['ClaimData']['ClaimRecs'][0]['SettingOfCare']"
+								},
+								"sink": {
+									"name": "settingOfCare",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"path": "$['ClaimData']['ClaimRecs'][0]['claimConfirmed']"
+								},
+								"sink": {
+									"name": "claimConfirmed",
+									"type": "String"
+								}
+							}
+						],
+						"collectionReference": ""
+					}
+				},
+				"inputs": [
+					{
+						"referenceName": "dataset_API_Jsonpayload_EventBased",
+						"type": "DatasetReference",
+						"parameters": {
+							"ds_Par_SourceFileName": {
+								"value": "@pipeline().parameters.SourceFileName",
+								"type": "Expression"
+							},
+							"ds_Par_SourceFilePath": {
+								"value": "@pipeline().parameters.SourceFolderPath",
+								"type": "Expression"
+							}
+						}
+					}
+				],
+				"outputs": [
+					{
+						"referenceName": "DS_OUT_AzureSQLTable_c",
+						"type": "DatasetReference"
+					}
+				]
+			},
+			{
+				"name": "Assign filename to variable C",
+				"type": "SetVariable",
+				"dependsOn": [
+					{
+						"activity": "Capture Metadata for C",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"userProperties": [],
+				"typeProperties": {
+					"variableName": "CaptureFileName",
+					"value": {
+						"value": "@activity('Capture Metadata for C').output.itemName",
+						"type": "Expression"
+					}
+				}
+			},
+			{
+				"name": "Assign filename to variable CEx",
+				"type": "SetVariable",
+				"dependsOn": [
+					{
+						"activity": "Capture Metadata for CEx",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"userProperties": [],
+				"typeProperties": {
+					"variableName": "CaptureFileName",
+					"value": {
+						"value": "@activity('Capture Metadata for CEx').output.itemName",
+						"type": "Expression"
+					}
+				}
+			},
+			{
+				"name": "Ingest data to staging table CEx",
+				"type": "Copy",
+				"dependsOn": [
+					{
+						"activity": "Assign filename to variable CEx",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"timeout": "7.00:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"source": {
+						"type": "JsonSource",
+						"storeSettings": {
+							"type": "AzureBlobStorageReadSettings",
+							"recursive": true,
+							"enablePartitionDiscovery": false
+						},
+						"formatSettings": {
+							"type": "JsonReadSettings"
+						}
+					},
+					"sink": {
+						"type": "AzureSqlSink"
+					},
+					"enableStaging": false,
+					"enableSkipIncompatibleRow": false,
+					"translator": {
+						"type": "TabularTranslator",
+						"mappings": [
+							{
+								"source": {
+									"path": "$['ClaimExceptionData']['ClaimExceptionRecs'][0]['jurisdictionCode']"
+								},
+								"sink": {
+									"name": "jurisdictionCode",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"path": "$['ClaimExceptionData']['ClaimExceptionRecs'][0]['claimID']"
+								},
+								"sink": {
+									"name": "claimID",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"path": "$['ClaimExceptionData']['ClaimExceptionRecs'][0]['exception']"
+								},
+								"sink": {
+									"name": "exception",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"path": "$['ClaimExceptionData']['ClaimExceptionRecs'][0]['systemExceptions']"
+								},
+								"sink": {
+									"name": "systemExceptions",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"path": "$['ClaimExceptionData']['ClaimExceptionRecs'][0]['exportTS']"
+								},
+								"sink": {
+									"name": "exportTS",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"path": "$['ClaimExceptionData']['ClaimExceptionRecs'][0]['claimExceptionstatusFlag']"
+								},
+								"sink": {
+									"name": "claimExceptionStatusFlag",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"path": "$['ClaimExceptionData']['ClaimExceptionRecs'][0]['creationTS']"
+								},
+								"sink": {
+									"name": "creationTS",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"path": "$['ClaimExceptionData']['ClaimExceptionRecs'][0]['flaggedHistory']"
+								},
+								"sink": {
+									"name": "flaggedHistory",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"path": "$['ClaimExceptionData']['ClaimExceptionRecs'][0]['lastUpdatedTimeStamp']"
+								},
+								"sink": {
+									"name": "lastUpdatedTimestamp",
+									"type": "String"
+								}
+							}
+						],
+						"collectionReference": ""
+					}
+				},
+				"inputs": [
+					{
+						"referenceName": "dataset_API_Jsonpayload_EventBased",
+						"type": "DatasetReference",
+						"parameters": {
+							"ds_Par_SourceFileName": {
+								"value": "@pipeline().parameters.SourceFileName",
+								"type": "Expression"
+							},
+							"ds_Par_SourceFilePath": {
+								"value": "@pipeline().parameters.SourceFolderPath",
+								"type": "Expression"
+							}
+						}
+					}
+				],
+				"outputs": [
+					{
+						"referenceName": "DS_OUT_AzureSQLTable_cex",
+						"type": "DatasetReference"
+					}
+				]
+			},
+			{
+				"name": "Error Metadata of CEx",
+				"type": "GetMetadata",
+				"dependsOn": [
+					{
+						"activity": "Ingest data to staging table CEx",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"timeout": "7.00:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"dataset": {
+						"referenceName": "DS_OUT_AzureSQLTable_cex32",
+						"type": "DatasetReference"
+					},
+					"fieldList": [
+						"columnCount"
+					]
+				}
+			},
+			{
+				"name": "Set variable CEx",
+				"type": "SetVariable",
+				"dependsOn": [
+					{
+						"activity": "Ingest data to staging table CEx",
+						"dependencyConditions": [
+							"Failed"
+						]
+					}
+				],
+				"userProperties": [],
+				"typeProperties": {
+					"variableName": "CaptureErrorDetails",
+					"value": {
+						"value": "@activity('Ingest data to staging table CEx').Error.Message",
+						"type": "Expression"
+					}
+				}
+			},
+			{
+				"name": "Load errors of CEx",
+				"type": "SqlServerStoredProcedure",
+				"dependsOn": [
+					{
+						"activity": "Lookup CEx",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"timeout": "7.00:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"storedProcedureName": "[dbo].[usp_CaptureErrorDetails]",
+					"storedProcedureParameters": {
+						"ErrorDesc": {
+							"value": {
+								"value": "@variables('CaptureErrorDetails')",
+								"type": "Expression"
+							},
+							"type": "String"
+						},
+						"PipelineName": {
+							"value": {
+								"value": "@pipeline().Pipeline",
+								"type": "Expression"
+							},
+							"type": "String"
+						},
+						"SrNo": {
+							"value": {
+								"value": "@activity('Lookup CEx').output.FirstRow.MaxErrorNo",
+								"type": "Expression"
+							},
+							"type": "Int32"
+						}
+					}
+				},
+				"linkedServiceName": {
+					"referenceName": "ls_AzureSqlDatabase",
+					"type": "LinkedServiceReference"
+				}
+			},
+			{
+				"name": "Lookup CEx",
+				"type": "Lookup",
+				"dependsOn": [
+					{
+						"activity": "Set variable CEx",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"timeout": "7.00:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"source": {
+						"type": "AzureSqlSource",
+						"sqlReaderQuery": "SELECT MAX(SrNo)+1 AS [MaxErrorNo] FROM [dbo].[Adf_ErrorLog] ",
+						"queryTimeout": "02:00:00",
+						"partitionOption": "None"
+					},
+					"dataset": {
+						"referenceName": "ds_AzureSqlTable_ErrorRecords1",
+						"type": "DatasetReference"
+					}
+				}
+			},
+			{
+				"name": "Error Metadata of C",
+				"type": "GetMetadata",
+				"dependsOn": [
+					{
+						"activity": "Ingest data to staging table C",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"timeout": "7.00:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"dataset": {
+						"referenceName": "DS_OUT_AzureSQLTable_c52",
+						"type": "DatasetReference"
+					},
+					"fieldList": [
+						"columnCount"
+					]
+				}
+			},
+			{
+				"name": "Set variable C",
+				"type": "SetVariable",
+				"dependsOn": [
+					{
+						"activity": "Ingest data to staging table C",
+						"dependencyConditions": [
+							"Failed"
+						]
+					}
+				],
+				"userProperties": [],
+				"typeProperties": {
+					"variableName": "CaptureErrorDetails",
+					"value": {
+						"value": "@activity('Ingest data to staging table C').Error.Message",
+						"type": "Expression"
+					}
+				}
+			},
+			{
+				"name": "Load errors of C",
+				"type": "SqlServerStoredProcedure",
+				"dependsOn": [
+					{
+						"activity": "Lookup C",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"timeout": "7.00:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"storedProcedureName": "[dbo].[usp_CaptureErrorDetails]",
+					"storedProcedureParameters": {
+						"ErrorDesc": {
+							"value": {
+								"value": "@variables('CaptureErrorDetails')",
+								"type": "Expression"
+							},
+							"type": "String"
+						},
+						"PipelineName": {
+							"value": {
+								"value": "@pipeline().Pipeline",
+								"type": "Expression"
+							},
+							"type": "String"
+						},
+						"SrNo": {
+							"value": {
+								"value": "@activity('Lookup C').output.FirstRow.MaxErrorNo",
+								"type": "Expression"
+							},
+							"type": "Int32"
+						}
+					}
+				},
+				"linkedServiceName": {
+					"referenceName": "ls_AzureSqlDatabase",
+					"type": "LinkedServiceReference"
+				}
+			},
+			{
+				"name": "Lookup C",
+				"type": "Lookup",
+				"dependsOn": [
+					{
+						"activity": "Set variable C",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"timeout": "7.00:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"source": {
+						"type": "AzureSqlSource",
+						"sqlReaderQuery": "SELECT MAX(SrNo)+1 AS [MaxErrorNo] FROM [dbo].[Adf_ErrorLog] ",
+						"queryTimeout": "02:00:00",
+						"partitionOption": "None"
+					},
+					"dataset": {
+						"referenceName": "ds_AzureSqlTable_ErrorRecords1",
+						"type": "DatasetReference"
+					}
+				}
+			}
+		],
+		"parameters": {
+			"SourceFileName": {
+				"type": "string",
+				"defaultValue": "authenticarebulkdata.json"
+			},
+			"SourceFolderPath": {
+				"type": "string"
+			}
+		},
+		"variables": {
+			"CaptureFileName": {
+				"type": "String",
+				"defaultValue": "authenticarebulkdata.json"
+			},
+			"CaptureErrorDetails": {
+				"type": "String"
+			}
+		},
+		"annotations": [],
+		"lastPublishTime": "2021-03-28T09:54:18Z"
+	},
+	"type": "Microsoft.DataFactory/factories/pipelines"
+}

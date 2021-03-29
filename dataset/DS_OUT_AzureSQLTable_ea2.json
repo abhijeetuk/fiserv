@@ -1,0 +1,17 @@
+{
+	"name": "DS_OUT_AzureSQLTable_ea2",
+	"properties": {
+		"linkedServiceName": {
+			"referenceName": "ls_AzureSqlDatabase",
+			"type": "LinkedServiceReference"
+		},
+		"annotations": [],
+		"type": "AzureSqlTable",
+		"schema": [],
+		"typeProperties": {
+			"schema": "dbo",
+			"table": "Stg_EventAppointment"
+		}
+	},
+	"type": "Microsoft.DataFactory/factories/datasets"
+}
