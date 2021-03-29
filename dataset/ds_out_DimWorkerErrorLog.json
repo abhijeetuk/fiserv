@@ -1,0 +1,49 @@
+{
+	"name": "ds_out_DimWorkerErrorLog",
+	"properties": {
+		"linkedServiceName": {
+			"referenceName": "ls_AzureSqlDatabase",
+			"type": "LinkedServiceReference"
+		},
+		"annotations": [],
+		"type": "AzureSqlTable",
+		"schema": [
+			{
+				"name": "SrNo",
+				"type": "int",
+				"precision": 10
+			},
+			{
+				"name": "WorkerID",
+				"type": "nvarchar"
+			},
+			{
+				"name": "WorkerXRef",
+				"type": "nvarchar"
+			},
+			{
+				"name": "WorkerFirstName",
+				"type": "nvarchar"
+			},
+			{
+				"name": "WorkerMidName",
+				"type": "nvarchar"
+			},
+			{
+				"name": "WorkerLastName",
+				"type": "nvarchar"
+			},
+			{
+				"name": "LastModifiedDate",
+				"type": "datetime",
+				"precision": 23,
+				"scale": 3
+			}
+		],
+		"typeProperties": {
+			"schema": "dbo",
+			"table": "DimWorker_ErrorLog"
+		}
+	},
+	"type": "Microsoft.DataFactory/factories/datasets"
+}

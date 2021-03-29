@@ -1,0 +1,41 @@
+{
+	"name": "DS_Out_AzureSqlTable_DimWorker1",
+	"properties": {
+		"linkedServiceName": {
+			"referenceName": "ls_AzureSqlDatabase",
+			"type": "LinkedServiceReference"
+		},
+		"annotations": [],
+		"type": "AzureSqlTable",
+		"schema": [
+			{
+				"name": "WorkerID",
+				"type": "int",
+				"precision": 10
+			},
+			{
+				"name": "WorkerFirstName",
+				"type": "varchar"
+			},
+			{
+				"name": "WorkerMidName",
+				"type": "varchar"
+			},
+			{
+				"name": "WorkerLastName",
+				"type": "varchar"
+			},
+			{
+				"name": "WorkerXRef",
+				"type": "decimal",
+				"precision": 18,
+				"scale": 0
+			}
+		],
+		"typeProperties": {
+			"schema": "dbo",
+			"table": "DimWorker"
+		}
+	},
+	"type": "Microsoft.DataFactory/factories/datasets"
+}

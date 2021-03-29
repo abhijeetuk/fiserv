@@ -1,0 +1,31 @@
+{
+	"name": "ds_AzureSqlTable_ErrorRecords1",
+	"properties": {
+		"linkedServiceName": {
+			"referenceName": "ls_AzureSqlDatabase",
+			"type": "LinkedServiceReference"
+		},
+		"annotations": [],
+		"type": "AzureSqlTable",
+		"schema": [
+			{
+				"name": "SrNo",
+				"type": "int",
+				"precision": 10
+			},
+			{
+				"name": "PipelineName",
+				"type": "nvarchar"
+			},
+			{
+				"name": "ErrorDescription",
+				"type": "nvarchar"
+			}
+		],
+		"typeProperties": {
+			"schema": "dbo",
+			"table": "Adf_ErrorLog"
+		}
+	},
+	"type": "Microsoft.DataFactory/factories/datasets"
+}

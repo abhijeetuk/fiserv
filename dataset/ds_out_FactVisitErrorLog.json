@@ -1,0 +1,80 @@
+{
+	"name": "ds_out_FactVisitErrorLog",
+	"properties": {
+		"linkedServiceName": {
+			"referenceName": "ls_AzureSqlDatabase",
+			"type": "LinkedServiceReference"
+		},
+		"annotations": [],
+		"type": "AzureSqlTable",
+		"schema": [
+			{
+				"name": "jurisdictionCode",
+				"type": "nvarchar"
+			},
+			{
+				"name": "WorkerXRef",
+				"type": "nvarchar"
+			},
+			{
+				"name": "ProviderXRef",
+				"type": "nvarchar"
+			},
+			{
+				"name": "ClientXRef",
+				"type": "nvarchar"
+			},
+			{
+				"name": "ClaimID",
+				"type": "nvarchar"
+			},
+			{
+				"name": "VisitINTimeStamp",
+				"type": "nvarchar"
+			},
+			{
+				"name": "VisitOutTimeStamp",
+				"type": "nvarchar"
+			},
+			{
+				"name": "SourceCreationTS",
+				"type": "nvarchar"
+			},
+			{
+				"name": "SourceLastUpdatedTS",
+				"type": "nvarchar"
+			},
+			{
+				"name": "RecordCreationTS",
+				"type": "nvarchar"
+			},
+			{
+				"name": "RecordLastUpdatedTS",
+				"type": "nvarchar"
+			},
+			{
+				"name": "EntryMethod",
+				"type": "nvarchar"
+			},
+			{
+				"name": "ExceptionReason",
+				"type": "nvarchar"
+			},
+			{
+				"name": "ExceptionSevirity",
+				"type": "nvarchar"
+			},
+			{
+				"name": "LastModifiedDate",
+				"type": "datetime",
+				"precision": 23,
+				"scale": 3
+			}
+		],
+		"typeProperties": {
+			"schema": "dbo",
+			"table": "FactVisits_ErrorLog"
+		}
+	},
+	"type": "Microsoft.DataFactory/factories/datasets"
+}

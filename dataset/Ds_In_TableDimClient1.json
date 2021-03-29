@@ -1,0 +1,53 @@
+{
+	"name": "Ds_In_TableDimClient1",
+	"properties": {
+		"linkedServiceName": {
+			"referenceName": "ls_AzureSqlDatabase",
+			"type": "LinkedServiceReference"
+		},
+		"annotations": [],
+		"type": "AzureSqlTable",
+		"schema": [
+			{
+				"name": "ClientID",
+				"type": "int",
+				"precision": 10
+			},
+			{
+				"name": "ClientXRef",
+				"type": "nvarchar"
+			},
+			{
+				"name": "ClientFirstname",
+				"type": "nvarchar"
+			},
+			{
+				"name": "ClientMiddlename",
+				"type": "nvarchar"
+			},
+			{
+				"name": "ClientLastName",
+				"type": "nvarchar"
+			},
+			{
+				"name": "ClientFullName",
+				"type": "nvarchar"
+			},
+			{
+				"name": "Hashcolumn",
+				"type": "varbinary"
+			},
+			{
+				"name": "LastModifiedDate",
+				"type": "datetime",
+				"precision": 23,
+				"scale": 3
+			}
+		],
+		"typeProperties": {
+			"schema": "dbo",
+			"table": "DimClient"
+		}
+	},
+	"type": "Microsoft.DataFactory/factories/datasets"
+}

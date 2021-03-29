@@ -1,0 +1,37 @@
+{
+	"name": "ds_out_DimProviderErrorLog",
+	"properties": {
+		"linkedServiceName": {
+			"referenceName": "ls_AzureSqlDatabase",
+			"type": "LinkedServiceReference"
+		},
+		"annotations": [],
+		"type": "AzureSqlTable",
+		"schema": [
+			{
+				"name": "SrNo",
+				"type": "int",
+				"precision": 10
+			},
+			{
+				"name": "ProviderXRef",
+				"type": "nvarchar"
+			},
+			{
+				"name": "ProviderFullName",
+				"type": "nvarchar"
+			},
+			{
+				"name": "LastModifiedDate",
+				"type": "datetime",
+				"precision": 23,
+				"scale": 3
+			}
+		],
+		"typeProperties": {
+			"schema": "dbo",
+			"table": "DimProvider_ErrorLog"
+		}
+	},
+	"type": "Microsoft.DataFactory/factories/datasets"
+}

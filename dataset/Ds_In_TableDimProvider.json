@@ -1,0 +1,41 @@
+{
+	"name": "Ds_In_TableDimProvider",
+	"properties": {
+		"linkedServiceName": {
+			"referenceName": "ls_AzureSqlDatabase",
+			"type": "LinkedServiceReference"
+		},
+		"annotations": [],
+		"type": "AzureSqlTable",
+		"schema": [
+			{
+				"name": "ProviderID",
+				"type": "int",
+				"precision": 10
+			},
+			{
+				"name": "ProviderXRef",
+				"type": "nvarchar"
+			},
+			{
+				"name": "ProviderFullName",
+				"type": "nvarchar"
+			},
+			{
+				"name": "Hashcolumn",
+				"type": "varbinary"
+			},
+			{
+				"name": "LastModifiedDate",
+				"type": "datetime",
+				"precision": 23,
+				"scale": 3
+			}
+		],
+		"typeProperties": {
+			"schema": "dbo",
+			"table": "DimProvider"
+		}
+	},
+	"type": "Microsoft.DataFactory/factories/datasets"
+}

@@ -1,0 +1,65 @@
+{
+	"name": "dataflow_DimClient",
+	"properties": {
+		"type": "MappingDataFlow",
+		"typeProperties": {
+			"sources": [
+				{
+					"dataset": {
+						"referenceName": "DS_OUT_AzureSQLTable_c",
+						"type": "DatasetReference"
+					},
+					"name": "StgClaim"
+				},
+				{
+					"dataset": {
+						"referenceName": "Ds_In_TableDimClient",
+						"type": "DatasetReference"
+					},
+					"name": "srcDimClient"
+				}
+			],
+			"sinks": [
+				{
+					"dataset": {
+						"referenceName": "Ds_In_TableDimClient",
+						"type": "DatasetReference"
+					},
+					"name": "NewRecs"
+				},
+				{
+					"dataset": {
+						"referenceName": "Ds_In_TableDimClient",
+						"type": "DatasetReference"
+					},
+					"name": "UpdateRecs"
+				},
+				{
+					"dataset": {
+						"referenceName": "ds_out_DimClientErrorLog",
+						"type": "DatasetReference"
+					},
+					"name": "InvalidRecsForDimClient"
+				}
+			],
+			"transformations": [
+				{
+					"name": "Join"
+				},
+				{
+					"name": "HashBuild"
+				},
+				{
+					"name": "ConditionalSplit"
+				},
+				{
+					"name": "UpdateEssentials"
+				},
+				{
+					"name": "ConditionalSplitForErroneousRecs"
+				}
+			],
+			"script": "source(output(\n\t\tStgClaim_sk_clientXref as string,\n\t\tsk_consumerFirstName as string,\n\t\tsk_consumerMidName as string,\n\t\tsk_consumerLastName as string,\n\t\tsk_consumerFullName as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tisolationLevel: 'READ_UNCOMMITTED',\n\tquery: 'SELECT\\n\tltrim(rtrim([sk_consumerXRef])) As StgClaim_sk_clientXref\\n\t,[sk_consumerFirstName]\\n\t,[sk_consumerMidName]\\n\t,[sk_consumerLastName]\\n\t,[sk_consumerFullName]\\nFROM [dbo].[Stg_Claim]',\n\tformat: 'query') ~> StgClaim\nsource(output(\n\t\tClientID as integer,\n\t\tClientXRef as string,\n\t\tClientFirstname as string,\n\t\tClientMiddlename as string,\n\t\tClientLastName as string,\n\t\tClientFullName as string,\n\t\tHashcolumn as binary\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tisolationLevel: 'READ_UNCOMMITTED',\n\tquery: 'SELECT \\n       [ClientID]\\n      ,ltrim(rtrim([ClientXRef])) as ClientXRef\\n      ,[ClientFirstname]\\n      ,[ClientMiddlename]\\n      ,[ClientLastName]\\n      ,[ClientFullName]\\n      ,[Hashcolumn]\\n  FROM [dbo].[DimClient]',\n\tformat: 'query') ~> srcDimClient\nHashBuild, srcDimClient join(StgClaim_sk_clientXref == ClientXRef,\n\tjoinType:'left',\n\tbroadcast: 'auto')~> Join\nConditionalSplitForErroneousRecs@ValidRecs derive(Hash = toBinary(md5(StgClaim_sk_clientXref+sk_consumerFirstName+sk_consumerMidName+sk_consumerLastName))) ~> HashBuild\nJoin split(isNull(ClientXRef),\n\tisNull(ClientXRef) && notEquals(Hashcolumn, Hash),\n\tdisjoint: false) ~> ConditionalSplit@(New, Updates)\nConditionalSplit@Updates alterRow(updateIf(true())) ~> UpdateEssentials\nStgClaim split(isNull(toString(StgClaim_sk_clientXref)) || isNull(toString(sk_consumerFirstName))|| isNull(toString(sk_consumerMidName))|| isNull(toString(sk_consumerLastName))|| isNull(toString(sk_consumerFullName)),\n\tdisjoint: false) ~> ConditionalSplitForErroneousRecs@(InvalidRecs, ValidRecs)\nConditionalSplit@New sink(input(\n\t\tClientID as integer,\n\t\tClientXRef as string,\n\t\tClientFirstname as string,\n\t\tClientMiddlename as string,\n\t\tClientLastName as string,\n\t\tClientFullName as string,\n\t\tHashcolumn as binary,\n\t\tLastModifiedDate as timestamp\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tdeletable:false,\n\tinsertable:true,\n\tupdateable:false,\n\tupsertable:false,\n\tformat: 'table',\n\tmapColumn(\n\t\tClientXRef,\n\t\tClientFirstname,\n\t\tClientMiddlename,\n\t\tClientLastName,\n\t\tClientFullName,\n\t\tHashcolumn = Hash\n\t),\n\tskipDuplicateMapInputs: true,\n\tskipDuplicateMapOutputs: true,\n\terrorHandlingOption: 'allErrors',\n\ttransactionCommit: 'single',\n\treportSuccessOnError: false) ~> NewRecs\nUpdateEssentials sink(input(\n\t\tClientID as integer,\n\t\tClientXRef as string,\n\t\tClientFirstname as string,\n\t\tClientMiddlename as string,\n\t\tClientLastName as string,\n\t\tClientFullName as string,\n\t\tHashcolumn as binary,\n\t\tLastModifiedDate as timestamp\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tdeletable:false,\n\tinsertable:false,\n\tupdateable:true,\n\tupsertable:false,\n\tkeys:['ClientXRef'],\n\tformat: 'table',\n\tmapColumn(\n\t\tClientXRef,\n\t\tClientFirstname,\n\t\tClientMiddlename,\n\t\tClientLastName,\n\t\tClientFullName,\n\t\tHashcolumn = Hash\n\t),\n\tskipDuplicateMapInputs: true,\n\tskipDuplicateMapOutputs: true,\n\terrorHandlingOption: 'allErrors',\n\ttransactionCommit: 'single',\n\treportSuccessOnError: false) ~> UpdateRecs\nConditionalSplitForErroneousRecs@InvalidRecs sink(input(\n\t\tSrNo as integer,\n\t\tClientXRef as string,\n\t\tClientFirstname as string,\n\t\tClientMiddlename as string,\n\t\tClientLastName as string,\n\t\tClientFullName as string,\n\t\tLastModifiedDate as timestamp\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tdeletable:false,\n\tinsertable:true,\n\tupdateable:false,\n\tupsertable:false,\n\tformat: 'table',\n\tmapColumn(\n\t\tClientXRef = StgClaim_sk_clientXref,\n\t\tClientFirstname = sk_consumerFirstName,\n\t\tClientMiddlename = sk_consumerMidName,\n\t\tClientLastName = sk_consumerLastName,\n\t\tClientFullName = sk_consumerFullName\n\t),\n\tskipDuplicateMapInputs: true,\n\tskipDuplicateMapOutputs: true,\n\terrorHandlingOption: 'stopOnFirstError') ~> InvalidRecsForDimClient"
+		}
+	}
+}

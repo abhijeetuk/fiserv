@@ -1,0 +1,29 @@
+{
+	"name": "trg_BlobCreationEventCapture",
+	"properties": {
+		"annotations": [],
+		"runtimeState": "Started",
+		"pipelines": [
+			{
+				"pipelineReference": {
+					"referenceName": "pipeline-Master-Dynamic-Load",
+					"type": "PipelineReference"
+				},
+				"parameters": {
+					"SourceFileName": "@triggerBody().fileName",
+					"SourceFolderPath": "@triggerBody().folderPath"
+				}
+			}
+		],
+		"type": "BlobEventsTrigger",
+		"typeProperties": {
+			"blobPathBeginsWith": "/adfsqldbauditlogs/blobs/AuthenticareSampleData/",
+			"blobPathEndsWith": "authenticarebulkdata.json",
+			"ignoreEmptyBlobs": true,
+			"scope": "/subscriptions/7e405882-3d98-4caf-9717-8ce70d81ed00/resourceGroups/AbhiRG/providers/Microsoft.Storage/storageAccounts/onedcstorageaccount",
+			"events": [
+				"Microsoft.Storage.BlobCreated"
+			]
+		}
+	}
+}

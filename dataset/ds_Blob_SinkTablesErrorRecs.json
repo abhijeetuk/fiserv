@@ -1,0 +1,19 @@
+{
+	"name": "ds_Blob_SinkTablesErrorRecs",
+	"properties": {
+		"linkedServiceName": {
+			"referenceName": "ls_BlobStorage",
+			"type": "LinkedServiceReference"
+		},
+		"annotations": [],
+		"type": "Json",
+		"typeProperties": {
+			"location": {
+				"type": "AzureBlobStorageLocation",
+				"container": "erroneous-records-distination-tables"
+			}
+		},
+		"schema": {}
+	},
+	"type": "Microsoft.DataFactory/factories/datasets"
+}

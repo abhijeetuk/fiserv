@@ -1,0 +1,83 @@
+{
+	"name": "dataflow18Mar2021Facts1",
+	"properties": {
+		"type": "MappingDataFlow",
+		"typeProperties": {
+			"sources": [
+				{
+					"dataset": {
+						"referenceName": "DS_OUT_AzureSQLTable_c41",
+						"type": "DatasetReference"
+					},
+					"name": "StgClaim"
+				},
+				{
+					"dataset": {
+						"referenceName": "Ds_Input_TableDimWorker12",
+						"type": "DatasetReference"
+					},
+					"name": "DimWorker"
+				},
+				{
+					"dataset": {
+						"referenceName": "Ds_In_TableDimProvider12",
+						"type": "DatasetReference"
+					},
+					"name": "DimProvider"
+				},
+				{
+					"dataset": {
+						"referenceName": "Ds_In_TableDimClient12",
+						"type": "DatasetReference"
+					},
+					"name": "DimClient"
+				},
+				{
+					"dataset": {
+						"referenceName": "DS_OUT_AzureSQLTable_cex31",
+						"type": "DatasetReference"
+					},
+					"name": "StgClaimException"
+				},
+				{
+					"dataset": {
+						"referenceName": "Ds_In_TableDimState1",
+						"type": "DatasetReference"
+					},
+					"name": "DimState"
+				}
+			],
+			"sinks": [
+				{
+					"dataset": {
+						"referenceName": "Ds_In_TableFactVisits1",
+						"type": "DatasetReference"
+					},
+					"name": "WriteFactVisits",
+					"rejectedDataLinkedService": {
+						"referenceName": "ls_BlobStorage",
+						"type": "LinkedServiceReference"
+					}
+				}
+			],
+			"transformations": [
+				{
+					"name": "OneJoinDimWorker"
+				},
+				{
+					"name": "TwoJoinDimProvider"
+				},
+				{
+					"name": "ThreeJoinDimClient"
+				},
+				{
+					"name": "FiveJoinCEx"
+				},
+				{
+					"name": "FourJoinDimState"
+				}
+			],
+			"script": "source(output(\n\t\tjurisdictionCode as string,\n\t\tworkerXref as string,\n\t\tproviderXRef as string,\n\t\tclientXRef as string,\n\t\tclaimID as string,\n\t\tvisitInTimeStamp as string,\n\t\tvisitOutTimeStamp as string,\n\t\tentryMethod as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tisolationLevel: 'READ_UNCOMMITTED',\n\tquery: 'SELECT \\n       ltrim(rtrim([jurisdictionCode])) AS jurisdictionCode\\n      ,ltrim(rtrim([workerXref])) AS workerXref\\n      ,ltrim(rtrim([providerXRef])) AS providerXRef\\n      ,ltrim(rtrim([sk_consumerXRef])) as clientXRef \\n      ,ltrim(rtrim([claimID])) AS claimID\\n      ,creationTimestamp as visitInTimeStamp \\n      ,completionTimestamp as visitOutTimeStamp\\n      ,CASE  \\n\t\t\tWHEN filingSource= 0 THEN \\'Unknown\\'\\n\t\t\tWHEN filingSource= 1 THEN \\'Web\\'\\n\t\t\tWHEN filingSource= 2 THEN \\'IVR\\'\\n\t\t\tWHEN filingSource= 3 THEN \\'Batch\\'\\n\t\t\tWHEN filingSource= 4 THEN \\'Mobile\\'\\n\t\t\tWHEN filingSource= 5 THEN \\'SystemGenerated\\'\\n\t\t\tWHEN filingSource= 6 THEN \\'VVCard\\'\\n\t\t\tELSE \\'Not Applicable\\'\\n\t   END AS entryMethod\\nFROM [dbo].[Stg_Claim]',\n\tformat: 'query') ~> StgClaim\nsource(output(\n\t\tWorkerID as integer,\n\t\tWorkerXRef as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tisolationLevel: 'READ_UNCOMMITTED',\n\tquery: 'SELECT \\nWorkerID\\n,WorkerXRef \\nFROM [dbo].DimWorker',\n\tformat: 'query') ~> DimWorker\nsource(output(\n\t\tProviderID as integer,\n\t\tProviderXRef as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tisolationLevel: 'READ_UNCOMMITTED',\n\tquery: 'SELECT \\n ProviderID\\n,ProviderXRef \\nFROM [dbo].DimProvider',\n\tformat: 'query') ~> DimProvider\nsource(output(\n\t\tClientID as integer,\n\t\tClientXRef as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tisolationLevel: 'READ_UNCOMMITTED',\n\tquery: 'SELECT \\n ClientID\\n,ClientXRef \\nFROM [dbo].DimClient',\n\tformat: 'query') ~> DimClient\nsource(output(\n\t\tClaimID as string,\n\t\tException as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tisolationLevel: 'READ_UNCOMMITTED',\n\tquery: 'SELECT \\n       ClaimID\\n       ,Exception\\nFROM [dbo].Stg_ClaimException',\n\tformat: 'query') ~> StgClaimException\nsource(output(\n\t\tStateID as integer,\n\t\tJurisdictionCode as string,\n\t\tstateCode as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tisolationLevel: 'READ_UNCOMMITTED',\n\tquery: 'SELECT \\n\t    ST.StateID\\n\t   ,ltrim(rtrim(JS.JurisdictionCode)) as JurisdictionCode\\n\t   ,ltrim(rtrim(JS.StateCode)) as stateCode\\n\t   From DimJurisdictionState JS\\nLeft Outer Join DimState ST\\nON JS.StateCode = ST.StateCode',\n\tformat: 'query') ~> DimState\nStgClaim, DimWorker join(StgClaim@workerXref == DimWorker@WorkerXRef,\n\tjoinType:'inner',\n\tbroadcast: 'auto')~> OneJoinDimWorker\nOneJoinDimWorker, DimProvider join(StgClaim@providerXRef == DimProvider@ProviderXRef,\n\tjoinType:'inner',\n\tbroadcast: 'auto')~> TwoJoinDimProvider\nTwoJoinDimProvider, DimClient join(StgClaim@clientXRef == DimClient@ClientXRef,\n\tjoinType:'inner',\n\tbroadcast: 'auto')~> ThreeJoinDimClient\nFourJoinDimState, StgClaimException join(StgClaim@claimID == StgClaimException@ClaimID,\n\tjoinType:'left',\n\tbroadcast: 'auto')~> FiveJoinCEx\nThreeJoinDimClient, DimState join(StgClaim@jurisdictionCode == DimState@JurisdictionCode,\n\tjoinType:'inner',\n\tbroadcast: 'auto')~> FourJoinDimState\nFiveJoinCEx sink(input(\n\t\tWorkerID as integer,\n\t\tProviderID as integer,\n\t\tClientID as integer,\n\t\tStateID as integer,\n\t\tClaimID as string,\n\t\tVisitINTimeStamp as timestamp,\n\t\tVisitOutTimeStamp as timestamp,\n\t\tSourceCreationTS as timestamp,\n\t\tSourceLastUpdatedTS as timestamp,\n\t\tRecordCreationTS as timestamp,\n\t\tRecordLastUpdatedTS as timestamp,\n\t\tEntryMethod as string,\n\t\tExceptionReason as string,\n\t\tExceptionSevirity as string,\n\t\tLastModifiedDate as timestamp\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tdeletable:false,\n\tinsertable:true,\n\tupdateable:false,\n\tupsertable:false,\n\tformat: 'table',\n\tmapColumn(\n\t\tWorkerID,\n\t\tProviderID,\n\t\tClientID,\n\t\tStateID,\n\t\tClaimID = StgClaim@claimID,\n\t\tVisitINTimeStamp = visitInTimeStamp,\n\t\tVisitOutTimeStamp = visitOutTimeStamp,\n\t\tEntryMethod = entryMethod,\n\t\tExceptionReason = Exception\n\t),\n\tskipDuplicateMapInputs: true,\n\tskipDuplicateMapOutputs: true,\n\terrorHandlingOption: 'allErrors',\n\toutputRejectedData: true,\n\trejectedData_container: 'erroneous-records-distination-tables',\n\trejectedData_folderPath: 'FactVisitsErrors.txt',\n\ttransactionCommit: 'single',\n\treportSuccessOnError: true) ~> WriteFactVisits"
+		}
+	}
+}

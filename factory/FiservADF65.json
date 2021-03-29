@@ -1,0 +1,9 @@
+{
+	"name": "FiservADF65",
+	"location": "eastus",
+	"identity": {
+		"type": "SystemAssigned",
+		"principalId": "de1868d2-46af-4445-8314-309c8b20bfcf",
+		"tenantId": "fb3d0829-ca70-4be8-ab15-e1774467a7b3"
+	}
+}

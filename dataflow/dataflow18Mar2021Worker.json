@@ -1,0 +1,55 @@
+{
+	"name": "dataflow18Mar2021Worker",
+	"properties": {
+		"type": "MappingDataFlow",
+		"typeProperties": {
+			"sources": [
+				{
+					"dataset": {
+						"referenceName": "DS_OUT_AzureSQLTable_c",
+						"type": "DatasetReference"
+					},
+					"name": "StgClaim"
+				},
+				{
+					"dataset": {
+						"referenceName": "DS_Out_AzureSqlTable_DimWorker",
+						"type": "DatasetReference"
+					},
+					"name": "srcDimWorker"
+				}
+			],
+			"sinks": [
+				{
+					"dataset": {
+						"referenceName": "Ds_Input_TableDimWorker1",
+						"type": "DatasetReference"
+					},
+					"name": "NewRecs"
+				},
+				{
+					"dataset": {
+						"referenceName": "Ds_Input_TableDimWorker1",
+						"type": "DatasetReference"
+					},
+					"name": "UpdateRecs"
+				}
+			],
+			"transformations": [
+				{
+					"name": "Join"
+				},
+				{
+					"name": "HashBuild"
+				},
+				{
+					"name": "ConditionalSplit"
+				},
+				{
+					"name": "UpdateEssentials"
+				}
+			],
+			"script": "source(output(\n\t\tworkerXref as string,\n\t\tworkerFirstName as string,\n\t\tworkerMidName as string,\n\t\tworkerLastName as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tisolationLevel: 'READ_UNCOMMITTED',\n\tquery: 'SELECT       \\n       ltrim(rtrim([workerXref])) as workerXref\\n      ,[workerFirstName]\\n      ,[workerMidName]\\n      ,[workerLastName]\\nFROM dbo.[Stg_Claim]',\n\tformat: 'query') ~> StgClaim\nsource(output(\n\t\tWorkerXRef as string,\n\t\tHashcolumn as binary\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tisolationLevel: 'READ_UNCOMMITTED',\n\tquery: 'SELECT \\n           WorkerXRef\\n,Hashcolumn \\nFROM [dbo].[DimWorker]',\n\tformat: 'query') ~> srcDimWorker\nHashBuild, srcDimWorker join(StgClaim@workerXref == srcDimWorker@WorkerXRef,\n\tjoinType:'left',\n\tbroadcast: 'auto')~> Join\nStgClaim derive(Hash = toBinary(md5(workerXref+workerFirstName+workerMidName+workerLastName))) ~> HashBuild\nJoin split(isNull(srcDimWorker@WorkerXRef),\n\tisNull(srcDimWorker@WorkerXRef) && notEquals(Hashcolumn, Hash),\n\tdisjoint: false) ~> ConditionalSplit@(New, Updates)\nConditionalSplit@Updates alterRow(updateIf(true())) ~> UpdateEssentials\nConditionalSplit@New sink(input(\n\t\tWorkerID as integer,\n\t\tWorkerXRef as string,\n\t\tWorkerFirstName as string,\n\t\tWorkerMidName as string,\n\t\tWorkerLastName as string,\n\t\tHashcolumn as binary,\n\t\tLastModifiedDate as timestamp\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tdeletable:false,\n\tinsertable:true,\n\tupdateable:false,\n\tupsertable:false,\n\tformat: 'table',\n\tmapColumn(\n\t\tWorkerXRef = ConditionalSplit@New@WorkerXRef,\n\t\tWorkerFirstName = workerFirstName,\n\t\tWorkerMidName = workerMidName,\n\t\tWorkerLastName = workerLastName,\n\t\tHashcolumn = Hash\n\t),\n\tskipDuplicateMapInputs: true,\n\tskipDuplicateMapOutputs: true,\n\terrorHandlingOption: 'allErrors',\n\ttransactionCommit: 'single',\n\treportSuccessOnError: false) ~> NewRecs\nUpdateEssentials sink(input(\n\t\tWorkerID as integer,\n\t\tWorkerXRef as string,\n\t\tWorkerFirstName as string,\n\t\tWorkerMidName as string,\n\t\tWorkerLastName as string,\n\t\tHashcolumn as binary,\n\t\tLastModifiedDate as timestamp\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tdeletable:false,\n\tinsertable:false,\n\tupdateable:true,\n\tupsertable:false,\n\tkeys:['WorkerXRef'],\n\tformat: 'table',\n\tmapColumn(\n\t\tWorkerXRef = ConditionalSplit@Updates@WorkerXRef,\n\t\tWorkerFirstName = workerFirstName,\n\t\tWorkerMidName = workerMidName,\n\t\tWorkerLastName = workerLastName,\n\t\tHashcolumn = Hash\n\t),\n\tskipDuplicateMapInputs: true,\n\tskipDuplicateMapOutputs: true,\n\terrorHandlingOption: 'allErrors',\n\ttransactionCommit: 'single',\n\treportSuccessOnError: false) ~> UpdateRecs"
+		}
+	}
+}
